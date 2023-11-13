@@ -7,39 +7,80 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/Menu"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:onClick="Menu"
+                android:src="@drawable/ic_list_white_24dp"
+                android:tint="@android:color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Moapp7"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+        </androidx.appcompat.widget.Toolbar>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+
     <ImageView
-        android:id="@+id/candies"
+        android:id="@+id/imageView"
         android:layout_width="wrap_content"
-        android:layout_height="200dp"
+        android:layout_height="400dp"
         android:src="@drawable/candies"/>
 
-    <ImageView
-        android:id="@+id/dst"
-        android:layout_width="wrap_content"
-        android:layout_height="200dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="15dp"
+        android:layout_weight="2"
+        android:orientation="vertical">
 
-    <com.google.android.material.slider.RangeSlider
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/rangeH"
-        android:valueFrom="0"
-        android:valueTo="180"
-        app:values="@array/h_values"/>
 
-    <com.google.android.material.slider.RangeSlider
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/rangeS"
-        android:valueFrom="0"
-        android:valueTo="255"
-        app:values="@array/s_values"/>
+        <TextView
+            android:id="@+id/colorBox"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_below="@id/textViewColor"
+            android:layout_gravity="center"
+            android:textSize="20sp"
+            />
 
-    <com.google.android.material.slider.RangeSlider
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/rangeV"
-        android:valueFrom="0"
-        android:valueTo="255"
-        app:values="@array/v_values"/>
+        <TextView
+            android:id="@+id/textViewRGB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="#ffffff"
+            android:textColor="@color/md_grey_800"
+            android:textSize="30sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/textViewColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:textSize="30sp"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
 
 </LinearLayout>
