@@ -44,7 +44,7 @@
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
         android:layout_height="400dp"
-        android:src="@drawable/candies"/>
+        android:src="@drawable/candies" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -80,6 +80,15 @@
             android:layout_gravity="center_horizontal"
             android:textSize="30sp"
             android:textStyle="bold"/>
+
+        <ImageView
+            android:id="@+id/cameraIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/camera"
+            android:clickable="true"
+            android:onClick="openCamera"
+            />
 
     </LinearLayout>
 

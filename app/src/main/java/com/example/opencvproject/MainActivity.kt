@@ -27,6 +27,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.AppCompatImageView
 import com.example.opencvproject.databinding.ActivityMainBinding
 import org.opencv.android.OpenCVLoader
@@ -39,6 +40,7 @@ import org.opencv.core.Scalar
 import org.opencv.imgproc.Imgproc
 
 private const val TAG = "TEST_OPEN_CV_ANDROID"
+private const val REQUEST_IMAGE_CAPTURE = 1
 
 class MainActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView
@@ -112,6 +114,14 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
+
+        val cameraIcon = findViewById<ImageView>(R.id.cameraIcon)
+        cameraIcon.setOnClickListener {
+            openCamera()
+        }
+    }
+    private fun openCamera() {
+        takePicture.launch(null)
     }
 
     private fun getHSV(x: Int, y: Int): FloatArray {
@@ -207,6 +217,35 @@ class MainActivity : AppCompatActivity() {
         val colorBox = findViewById<TextView>(R.id.colorBox)
         colorBox.setBackgroundColor(android.graphics.Color.rgb(red, green, blue))
     }
+
+    private fun getHSVFromBitmap(imageBitmap: Bitmap): FloatArray {
+        val mat = Mat(bitmap.height, bitmap.width, CvType.CV_8UC4)
+        Utils.bitmapToMat(bitmap, mat)
+
+        val hsvImage = Mat()
+        Imgproc.cvtColor(mat, hsvImage, Imgproc.COLOR_RGB2HSV)
+
+        val pixel = hsvImage.get(bitmap.height / 2, bitmap.width / 2)
+        val hsv = FloatArray(3)
+        hsv[0] = pixel[0].toFloat() // Hue
+        hsv[1] = pixel[1].toFloat() // Saturation
+        hsv[2] = pixel[2].toFloat() // Value
+
+        return hsv
+    }
+
+    // 새로운 결과 처리 변수를 추가합니다.
+    private val takePicture =
+        registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { result ->
+            result?.let { imageBitmap ->
+                // 이미지뷰에 찍은 이미지를 설정합니다.
+                imageView.setImageBitmap(imageBitmap)
+
+                // 새로 찍은 사진을 bitmap 변수에 저장합니다.
+                bitmap = imageBitmap
+            }
+        }
+
 }
 
 /*package com.example.opencvproject
