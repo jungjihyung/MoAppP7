@@ -1,32 +1,30 @@
 package com.example.opencvproject
 
-import android.content.Intent
+import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Rect
+import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.widget.AppCompatImageView
 import com.example.opencvproject.databinding.ActivityMainBinding
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
-import org.opencv.core.Core
 import org.opencv.core.CvType
-import org.opencv.core.CvType.CV_8UC3
 import org.opencv.core.Mat
-import org.opencv.core.Scalar
 import org.opencv.imgproc.Imgproc
+import java.util.Date
 
 private const val TAG = "TEST_OPEN_CV_ANDROID"
 private const val REQUEST_IMAGE_CAPTURE = 1
@@ -37,11 +35,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textViewColor: TextView
     private lateinit var bitmap: Bitmap
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if(!isGranted){
+                Toast.makeText(applicationContext, "권한 허용 필요", Toast.LENGTH_SHORT).show()
+                finish()
+        }
+    }
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        //setContentView(R.layout.activity_main)
+        requestPermissionLauncher.launch("android.permission.CAMERA")
 
         // OpenCV초기화
         OpenCVLoader.initDebug()
@@ -104,25 +111,38 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        val cameraIcon = findViewById<ImageView>(R.id.cameraIcon)
-        cameraIcon.setOnClickListener {
-            openCamera()
+    }
+
+    var pictureUri: Uri? = null
+    private val getTakePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) {
+        if(it) {
+            pictureUri?.let { uri ->
+                val inputStream = contentResolver.openInputStream(uri)
+                bitmap = BitmapFactory.decodeStream(inputStream)
+                imageView.setImageBitmap(bitmap) }
         }
     }
-    private fun openCamera() {
-        takePicture.launch(null)
+
+    private fun createImageFile(): Uri? {
+        val now = SimpleDateFormat("yyMMdd_HHmmss").format(Date())
+        val content = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "img_$now.jpg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpg")
+        }
+        return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, content)
+    }
+
+    fun openCamera(View: View) {
+        pictureUri = createImageFile()
+        getTakePicture.launch(pictureUri)
     }
 
     private val pickGalleryImage =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let { selectedImage ->
-                val inputStream = contentResolver.openInputStream(selectedImage)
-                val selectedBitmap = BitmapFactory.decodeStream(inputStream)
-                inputStream?.close()
-
-                // 이미지뷰 및 비트맵 업데이트
-                imageView.setImageBitmap(selectedBitmap)
-                bitmap = selectedBitmap
+            uri?.let { uri ->
+                val inputStream = contentResolver.openInputStream(uri)
+                bitmap = BitmapFactory.decodeStream(inputStream)
+                imageView.setImageBitmap(bitmap)
             }
         }
 
@@ -240,17 +260,5 @@ class MainActivity : AppCompatActivity() {
 
         return hsv
     }
-
-    // 새로운 결과 처리 변수를 추가합니다.
-    private val takePicture =
-        registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { result ->
-            result?.let { imageBitmap ->
-                // 이미지뷰에 찍은 이미지를 설정합니다.
-                imageView.setImageBitmap(imageBitmap)
-
-                // 새로 찍은 사진을 bitmap 변수에 저장합니다.
-                bitmap = imageBitmap
-            }
-        }
 
 }
