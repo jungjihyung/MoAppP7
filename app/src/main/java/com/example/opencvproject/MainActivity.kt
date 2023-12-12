@@ -122,18 +122,18 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        val lowerRed = Scalar(100.0, 80.0, 80.0)
-        val upperRed = Scalar(140.0, 255.0, 255.0)
+        val lowerRed = Scalar(0.0, 80.0, 80.0)
+        val upperRed = Scalar(20.0, 255.0, 255.0)
         val lowerGreen = Scalar(40.0, 80.0, 80.0)
         val upperGreen = Scalar(80.0, 255.0, 255.0)
-        val lowerBlue = Scalar(-20.0, 80.0, 80.0)
-        val upperBlue = Scalar(20.0, 255.0, 255.0)
+        val lowerBlue = Scalar(100.0, 80.0, 80.0)
+        val upperBlue = Scalar(140.0, 255.0, 255.0)
 
         binding.red.setOnClickListener {
             val mat = Mat()
             val dst = Mat()
             Utils.bitmapToMat(bitmap, mat)
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2HSV)
             Core.inRange(mat, lowerRed, upperRed, dst)
             val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
             Utils.matToBitmap(dst, filter)
@@ -144,7 +144,7 @@ class MainActivity : AppCompatActivity() {
             val mat = Mat()
             val dst = Mat()
             Utils.bitmapToMat(bitmap, mat)
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2HSV)
             Core.inRange(mat, lowerGreen, upperGreen, dst)
             val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
             Utils.matToBitmap(dst, filter)
@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
             val mat = Mat()
             val dst = Mat()
             Utils.bitmapToMat(bitmap, mat)
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2HSV)
             Core.inRange(mat, lowerBlue, upperBlue, dst)
             val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
             Utils.matToBitmap(dst, filter)
