@@ -28,9 +28,6 @@ import org.opencv.core.Scalar
 import org.opencv.imgproc.Imgproc
 import java.util.Date
 
-private const val TAG = "TEST_OPEN_CV_ANDROID"
-private const val REQUEST_IMAGE_CAPTURE = 1
-
 class MainActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView
     private lateinit var textViewRGB: TextView
@@ -122,19 +119,27 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        val lowerRed = Scalar(0.0, 80.0, 80.0)
-        val upperRed = Scalar(20.0, 255.0, 255.0)
-        val lowerGreen = Scalar(40.0, 80.0, 80.0)
+        val lowerRed1 = Scalar(0.0, 150.0, 100.0)
+        val upperRed1 = Scalar(20.0, 255.0, 255.0)
+        val lowerRed2 = Scalar(160.0, 150.0, 100.0)
+        val upperRed2 = Scalar(180.0, 255.0, 255.0)
+
+        val lowerGreen = Scalar(40.0, 150.0, 100.0)
         val upperGreen = Scalar(80.0, 255.0, 255.0)
-        val lowerBlue = Scalar(100.0, 80.0, 80.0)
+
+        val lowerBlue = Scalar(100.0, 150.0, 100.0)
         val upperBlue = Scalar(140.0, 255.0, 255.0)
 
         binding.red.setOnClickListener {
             val mat = Mat()
             val dst = Mat()
+            val dst1 = Mat()
+            val dst2 = Mat()
             Utils.bitmapToMat(bitmap, mat)
             Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2HSV)
-            Core.inRange(mat, lowerRed, upperRed, dst)
+            Core.inRange(mat, lowerRed1, upperRed1, dst1)
+            Core.inRange(mat, lowerRed2, upperRed2, dst2)
+            Core.bitwise_or(dst1, dst2, dst)
             val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
             Utils.matToBitmap(dst, filter)
             imageView.setImageBitmap(filter)
@@ -295,22 +300,6 @@ class MainActivity : AppCompatActivity() {
 
         val colorBox = findViewById<TextView>(R.id.colorBox)
         colorBox.setBackgroundColor(android.graphics.Color.rgb(red, green, blue))
-    }
-
-    private fun getHSVFromBitmap(imageBitmap: Bitmap): FloatArray {
-        val mat = Mat(bitmap.height, bitmap.width, CvType.CV_8UC4)
-        Utils.bitmapToMat(bitmap, mat)
-
-        val hsvImage = Mat()
-        Imgproc.cvtColor(mat, hsvImage, Imgproc.COLOR_RGB2HSV)
-
-        val pixel = hsvImage.get(bitmap.height / 2, bitmap.width / 2)
-        val hsv = FloatArray(3)
-        hsv[0] = pixel[0].toFloat() // Hue
-        hsv[1] = pixel[1].toFloat() // Saturation
-        hsv[2] = pixel[2].toFloat() // Value
-
-        return hsv
     }
 
 }
