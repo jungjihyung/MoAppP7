@@ -122,12 +122,12 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        val lowerRed = Scalar(100.0, 200.0, 200.0)
+        val lowerRed = Scalar(100.0, 80.0, 80.0)
         val upperRed = Scalar(140.0, 255.0, 255.0)
-        val lowerGreen = Scalar(30.0, 80.0, 80.0)
-        val upperGreen = Scalar(70.0, 255.0, 255.0)
-        val lowerBlue = Scalar(0.0, 180.0, 55.0)
-        val upperBlue = Scalar(20.0, 255.0, 200.0)
+        val lowerGreen = Scalar(40.0, 80.0, 80.0)
+        val upperGreen = Scalar(80.0, 255.0, 255.0)
+        val lowerBlue = Scalar(-20.0, 80.0, 80.0)
+        val upperBlue = Scalar(20.0, 255.0, 255.0)
 
         binding.red.setOnClickListener {
             val mat = Mat()
