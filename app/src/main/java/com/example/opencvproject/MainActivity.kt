@@ -21,8 +21,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.example.opencvproject.databinding.ActivityMainBinding
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
+import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.Scalar
 import org.opencv.imgproc.Imgproc
 import java.util.Date
 
@@ -38,11 +40,12 @@ class MainActivity : AppCompatActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if(!isGranted){
-                Toast.makeText(applicationContext, "권한 허용 필요", Toast.LENGTH_SHORT).show()
-                finish()
+        if (!isGranted) {
+            Toast.makeText(applicationContext, "권한 허용 필요", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,7 +87,8 @@ class MainActivity : AppCompatActivity() {
                 showColorName(hsv)
 
                 // 클릭한 부분을 표시할 네모를생성
-                val rectBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+                val rectBitmap =
+                    Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
                 val canvas = Canvas(rectBitmap)
                 val rectPaint = Paint().apply {
                     color = Color.WHITE // 네모 이미지의 색상을 설정합니다.
@@ -98,10 +102,17 @@ class MainActivity : AppCompatActivity() {
                 val rectRight = relativeX + 50
                 val rectBottom = relativeY + 50
 
-                canvas.drawRect(rectLeft.toFloat(), rectTop.toFloat(), rectRight.toFloat(), rectBottom.toFloat(), rectPaint)
+                canvas.drawRect(
+                    rectLeft.toFloat(),
+                    rectTop.toFloat(),
+                    rectRight.toFloat(),
+                    rectBottom.toFloat(),
+                    rectPaint
+                )
 
                 // 클릭한 부분의 이미지에 네모
-                val combinedBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+                val combinedBitmap =
+                    Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
                 val combinedCanvas = Canvas(combinedBitmap)
                 combinedCanvas.drawBitmap(bitmap, 0f, 0f, null)
                 combinedCanvas.drawBitmap(rectBitmap, 0f, 0f, null)
@@ -111,15 +122,56 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        val lowerRed = Scalar(100.0, 200.0, 200.0)
+        val upperRed = Scalar(140.0, 255.0, 255.0)
+        val lowerGreen = Scalar(30.0, 80.0, 80.0)
+        val upperGreen = Scalar(70.0, 255.0, 255.0)
+        val lowerBlue = Scalar(0.0, 180.0, 55.0)
+        val upperBlue = Scalar(20.0, 255.0, 200.0)
+
+        binding.red.setOnClickListener {
+            val mat = Mat()
+            val dst = Mat()
+            Utils.bitmapToMat(bitmap, mat)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV)
+            Core.inRange(mat, lowerRed, upperRed, dst)
+            val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
+            Utils.matToBitmap(dst, filter)
+            imageView.setImageBitmap(filter)
+        }
+
+        binding.green.setOnClickListener {
+            val mat = Mat()
+            val dst = Mat()
+            Utils.bitmapToMat(bitmap, mat)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV)
+            Core.inRange(mat, lowerGreen, upperGreen, dst)
+            val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
+            Utils.matToBitmap(dst, filter)
+            imageView.setImageBitmap(filter)
+        }
+
+        binding.blue.setOnClickListener {
+            val mat = Mat()
+            val dst = Mat()
+            Utils.bitmapToMat(bitmap, mat)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV)
+            Core.inRange(mat, lowerBlue, upperBlue, dst)
+            val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
+            Utils.matToBitmap(dst, filter)
+            imageView.setImageBitmap(filter)
+        }
+
     }
 
     var pictureUri: Uri? = null
     private val getTakePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) {
-        if(it) {
+        if (it) {
             pictureUri?.let { uri ->
                 val inputStream = contentResolver.openInputStream(uri)
                 bitmap = BitmapFactory.decodeStream(inputStream)
-                imageView.setImageBitmap(bitmap) }
+                imageView.setImageBitmap(bitmap)
+            }
         }
     }
 
@@ -214,7 +266,7 @@ class MainActivity : AppCompatActivity() {
             "Lemon Yellow(레몬색)" to intArrayOf(255, 247, 0),
             "Prussian Blue(남색)" to intArrayOf(0, 0, 139),
             "Violet(남보라색)" to intArrayOf(83, 32, 161),
-            )
+        )
 
         var ColorName = ""
         var minDistance = Double.MAX_VALUE
