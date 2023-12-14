@@ -7,17 +7,21 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.icu.text.SimpleDateFormat
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.MotionEvent
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.opencvproject.databinding.ActivityMainBinding
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
@@ -59,110 +63,169 @@ class MainActivity : AppCompatActivity() {
         imageView = findViewById(R.id.imageView)
         textViewRGB = findViewById(R.id.textViewRGB)
         textViewColor = findViewById(R.id.textViewColor)
-        bitmap = BitmapFactory.decodeResource(resources, R.drawable.candies)
+        bitmap = BitmapFactory.decodeResource(resources, R.drawable.img1)
+
 
         imageView.setImageBitmap(bitmap)
+
+        // 초기 색상을 저장할 변수들
+        val originalRedColor = binding.red.backgroundTintList?.defaultColor
+        val originalGreenColor = binding.green.backgroundTintList?.defaultColor
+        val originalBlueColor = binding.blue.backgroundTintList?.defaultColor
+
+        //버튼 클릭시 버튼 색상 변경
+        val click = ContextCompat.getColor(this, R.color.colorPrimaryDark)
+
+        // 모든 버튼의 색상을 원래대로 돌리는 함수
+        fun resetButtonColors() {
+            binding.red.setBackgroundColor(originalRedColor ?: click)
+            binding.green.setBackgroundColor(originalGreenColor ?: click)
+            binding.blue.setBackgroundColor(originalBlueColor ?: click)
+        }
+
         imageView.setOnTouchListener { v, event ->
+            resetButtonColors()
             if (event.action == MotionEvent.ACTION_DOWN) {
-                val x = event.rawX.toInt()
-                val y = event.rawY.toInt()
+                // 이미지 뷰의 너비와 높이를 가져옵니다.
+                val imageViewWidth = v.width
+                val imageViewHeight = v.height
 
-                val location = IntArray(2)
-                v.getLocationOnScreen(location)
-                val viewX = location[0]
-                val viewY = location[1]
+                // 이미지의 실제 너비와 높이를 가져옵니다.
+                val bitmapWidth = bitmap.width
+                val bitmapHeight = bitmap.height
 
-                val imageX = x - viewX
-                val imageY = y - viewY
+                // 이미지 뷰와 이미지의 크기 사이의 비율을 계산합니다.
+                val widthRatio = bitmapWidth.toFloat() / imageViewWidth
+                val heightRatio = bitmapHeight.toFloat() / imageViewHeight
 
-                val imageWidth = v.width
-                val imageHeight = v.height
+                // 터치 이벤트의 좌표를 실제 이미지의 좌표로 변환합니다.
+                val x = (event.x * widthRatio).toInt()
+                val y = (event.y * heightRatio).toInt()
 
-                val relativeX = (imageX.toFloat() / imageWidth * bitmap.width).toInt()
-                val relativeY = (imageY.toFloat() / imageHeight * bitmap.height).toInt()
 
-                val hsv = getHSV(relativeX, relativeY)
+                val hsv = getHSV(x, y)
                 val rgb = HSVtoRGB(hsv)
                 showRGB(rgb)
                 showColorName(hsv)
 
-                // 클릭한 부분을 표시할 네모를생성
-                val rectBitmap =
+                // 클릭한 부분을 표시할 원을 생성
+                val circleBitmap =
                     Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-                val canvas = Canvas(rectBitmap)
-                val rectPaint = Paint().apply {
-                    color = Color.WHITE // 네모 이미지의 색상을 설정합니다.
+                val canvas = Canvas(circleBitmap)
+                val circlePaint = Paint().apply {
+                    color = Color.WHITE // 원 이미지의 색상을 설정합니다.
                     style = Paint.Style.STROKE
                     strokeWidth = 20f
                 }
 
-                // 클릭한 부분의 좌표를 기준으로 사각형의 좌표값을 계산합니다.
-                val rectLeft = relativeX - 50
-                val rectTop = relativeY - 50
-                val rectRight = relativeX + 50
-                val rectBottom = relativeY + 50
+                // 클릭한 부분의 좌표를 중심으로 하는 원의 반지름을 설정합니다.
+                val radius = 50f
 
-                canvas.drawRect(
-                    rectLeft.toFloat(),
-                    rectTop.toFloat(),
-                    rectRight.toFloat(),
-                    rectBottom.toFloat(),
-                    rectPaint
+                canvas.drawCircle(
+                    x.toFloat(),
+                    y.toFloat(),
+                    radius,
+                    circlePaint
                 )
 
-                // 클릭한 부분의 이미지에 네모
+                // 클릭한 부분의 이미지에 원
                 val combinedBitmap =
                     Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
                 val combinedCanvas = Canvas(combinedBitmap)
                 combinedCanvas.drawBitmap(bitmap, 0f, 0f, null)
-                combinedCanvas.drawBitmap(rectBitmap, 0f, 0f, null)
+                combinedCanvas.drawBitmap(circleBitmap, 0f, 0f, null)
 
                 imageView.setImageBitmap(combinedBitmap)
             }
+
             true
         }
 
-        val lowerRed = Scalar(100.0, 200.0, 200.0)
-        val upperRed = Scalar(140.0, 255.0, 255.0)
-        val lowerGreen = Scalar(30.0, 80.0, 80.0)
-        val upperGreen = Scalar(70.0, 255.0, 255.0)
-        val lowerBlue = Scalar(0.0, 180.0, 55.0)
-        val upperBlue = Scalar(20.0, 255.0, 200.0)
+
+        val lowerRed1 = Scalar(0.0, 150.0, 100.0)
+        val upperRed1 = Scalar(20.0, 255.0, 255.0)
+        val lowerRed2 = Scalar(160.0, 150.0, 100.0)
+        val upperRed2 = Scalar(180.0, 255.0, 255.0)
+
+        val lowerGreen = Scalar(40.0, 150.0, 100.0)
+        val upperGreen = Scalar(80.0, 255.0, 255.0)
+
+        val lowerBlue = Scalar(100.0, 150.0, 100.0)
+        val upperBlue = Scalar(140.0, 255.0, 255.0)
 
         binding.red.setOnClickListener {
+            resetButtonColors() // 다른 버튼의 색상을 원래대로 돌리기
             val mat = Mat()
             val dst = Mat()
+            val dst1 = Mat()
+            val dst2 = Mat()
             Utils.bitmapToMat(bitmap, mat)
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV)
-            Core.inRange(mat, lowerRed, upperRed, dst)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2HSV)
+            Core.inRange(mat, lowerRed1, upperRed1, dst1)
+            Core.inRange(mat, lowerRed2, upperRed2, dst2)
+            Core.bitwise_or(dst1, dst2, dst)
             val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
             Utils.matToBitmap(dst, filter)
             imageView.setImageBitmap(filter)
+            binding.red.setBackgroundColor(click)
+
         }
 
         binding.green.setOnClickListener {
+            resetButtonColors() // 다른 버튼의 색상을 원래대로 돌리기
             val mat = Mat()
             val dst = Mat()
             Utils.bitmapToMat(bitmap, mat)
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2HSV)
             Core.inRange(mat, lowerGreen, upperGreen, dst)
             val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
             Utils.matToBitmap(dst, filter)
             imageView.setImageBitmap(filter)
+            binding.green.setBackgroundColor(click)
         }
 
         binding.blue.setOnClickListener {
+            resetButtonColors() // 다른 버튼의 색상을 원래대로 돌리기
             val mat = Mat()
             val dst = Mat()
             Utils.bitmapToMat(bitmap, mat)
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV)
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2HSV)
             Core.inRange(mat, lowerBlue, upperBlue, dst)
             val filter = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.RGB_565)
             Utils.matToBitmap(dst, filter)
             imageView.setImageBitmap(filter)
+            binding.blue.setBackgroundColor(click)
         }
 
+        binding.Menu.setOnClickListener {
+            showPopupMenu(it)
+        }
     }
+
+
+    private fun showPopupMenu(view: View) {
+        val popupMenu = PopupMenu(this, view)
+        val inflater = popupMenu.menuInflater
+        inflater.inflate(R.menu.main_menu, popupMenu.menu)
+
+        popupMenu.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.menu_camera -> {
+                    // 카메라로 사진 찍기 동작 수행
+                    openCamera(view)
+                    true
+                }
+                R.id.menu_gallery -> {
+                    // 갤러리에서 가져오기 동작 수행
+                    openGallery(view)
+                    true
+                }
+                else -> false
+            }
+        }
+        popupMenu.show()
+    }
+
 
     var pictureUri: Uri? = null
     private val getTakePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) {
@@ -243,17 +306,15 @@ class MainActivity : AppCompatActivity() {
             "Black(검정색)" to intArrayOf(0, 0, 0),
             "Red(빨간색)" to intArrayOf(255, 0, 0),
             "Blue(파랑색)" to intArrayOf(0, 0, 255),
-            "Yellow(노란색)" to intArrayOf(255, 255, 0),
+            "Yellow(노란색)" to intArrayOf(255, 195, 0),
             "Green(초록색)" to intArrayOf(0, 255, 0),
             "Viridian(짙은녹색)" to intArrayOf(0, 100, 0),
             "Olive Green(짙은 녹두색)" to intArrayOf(0, 128, 0),
             "Brown(갈색)" to intArrayOf(165, 42, 42),
-            "Yellow Ochre(황토색)" to intArrayOf(198, 138, 18),
             "Vandyke Brown(고동색)" to intArrayOf(88, 70, 48),
-            "Purple(자주색)" to intArrayOf(128, 0, 128), //rgb값 수정
+            "Purple(자주색)" to intArrayOf(128, 0, 128),
             "Orange(주황색)" to intArrayOf(255, 165, 0),
             "Pale Orange(연주황색)" to intArrayOf(255, 178, 102),
-            "Vermilion(다홍색)" to intArrayOf(227, 66, 52),
             "Pink(분홍색)" to intArrayOf(255, 192, 203),
             "Sky Blue(하늘색)" to intArrayOf(135, 206, 235),
             "Yellow Green(연두)" to intArrayOf(129, 193, 71),
@@ -273,9 +334,9 @@ class MainActivity : AppCompatActivity() {
 
         for ((colorName, colorValue) in colorMap) {
             val distance = Math.sqrt(
-                Math.pow(red - colorValue[0].toDouble(), 2.0) +
-                        Math.pow(green - colorValue[1].toDouble(), 2.0) +
-                        Math.pow(blue - colorValue[2].toDouble(), 2.0)
+                        0.3 * Math.pow(red - colorValue[0].toDouble(), 2.0) +
+                        0.59 * Math.pow(green - colorValue[1].toDouble(), 2.0) +
+                        0.11 * Math.pow(blue - colorValue[2].toDouble(), 2.0)
             )
             if (distance < minDistance) {
                 minDistance = distance
@@ -295,22 +356,6 @@ class MainActivity : AppCompatActivity() {
 
         val colorBox = findViewById<TextView>(R.id.colorBox)
         colorBox.setBackgroundColor(android.graphics.Color.rgb(red, green, blue))
-    }
-
-    private fun getHSVFromBitmap(imageBitmap: Bitmap): FloatArray {
-        val mat = Mat(bitmap.height, bitmap.width, CvType.CV_8UC4)
-        Utils.bitmapToMat(bitmap, mat)
-
-        val hsvImage = Mat()
-        Imgproc.cvtColor(mat, hsvImage, Imgproc.COLOR_RGB2HSV)
-
-        val pixel = hsvImage.get(bitmap.height / 2, bitmap.width / 2)
-        val hsv = FloatArray(3)
-        hsv[0] = pixel[0].toFloat() // Hue
-        hsv[1] = pixel[1].toFloat() // Saturation
-        hsv[2] = pixel[2].toFloat() // Value
-
-        return hsv
     }
 
 }
