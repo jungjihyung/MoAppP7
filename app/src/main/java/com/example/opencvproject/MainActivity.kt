@@ -333,6 +333,7 @@ class MainActivity : AppCompatActivity() {
         var minDistance = Double.MAX_VALUE
 
         for ((colorName, colorValue) in colorMap) {
+            // 유클리어
             val distance = Math.sqrt(
                         0.3 * Math.pow(red - colorValue[0].toDouble(), 2.0) +
                         0.59 * Math.pow(green - colorValue[1].toDouble(), 2.0) +
